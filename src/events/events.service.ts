@@ -5,15 +5,21 @@ import { EventsRepository } from './events.repository';
 import { Booking } from './entities/booking.entity';
 import { EventDto } from './dtos/event.dto';
 import { Errors } from '../enums/errors';
+import { Cache } from 'src/helpers/Cache';
 
 @Injectable()
 export class EventsService {
     constructor(
         private readonly _eventsRepo: EventsRepository,
         private _eventsHelperService: EventsHelperService,
+        private _cache: Cache,
     ) {}
 
     async getEvents(): Promise<EventDto[]> {
+        if (this._cache.isValid('events')) {
+            return this._cache.get<EventDto[]>('events');
+        }
+
         const events = await this._eventsRepo.getEvents();
 
         const eventDtos = events.map(async (event) => {
@@ -35,7 +41,11 @@ export class EventsService {
             return event;
         });
 
-        return Promise.all(eventDtos);
+        const data = await Promise.all(eventDtos);
+
+        this._cache.set('events', data);
+
+        return data;
     }
 
     async book(body: CreateBookingDto): Promise<Booking> {
