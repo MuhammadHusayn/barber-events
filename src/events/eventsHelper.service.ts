@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common';
 export class EventsHelperService {
     constructor(private readonly _eventsRepo: EventsRepository) {}
 
-    async addEventDays(event) {
+    async getEventDays(event) {
         const currentDate = new Date();
         const eventEndDate = new Date(event.endDate);
         let eventStartDate = new Date(event.startDate);
@@ -33,33 +33,36 @@ export class EventsHelperService {
             }
         });
 
-        event.numberOfDays = workingDays;
+        return workingDays;
     }
 
-    async addEventMinutes(event) {
+    async getEventMinutes(event) {
         const HOUR = 1000 * 60;
         const currentDateMinutes = new Date().getTime() / HOUR;
         const startDateMinutes = new Date(event.startDate).getTime() / HOUR;
 
-        event.timeLeft = (startDateMinutes - currentDateMinutes) | 0;
+        const timeLeft = (startDateMinutes - currentDateMinutes) | 0;
+        return timeLeft;
     }
 
-    async addEventDaysOff(event) {
-        const dayOffs = await this._eventsRepo.getDayOffs();
-        event.dayOffs = dayOffs.filter((dayOff) => {
+    async getEventDaysOff() {
+        let dayOffs = await this._eventsRepo.getDayOffs();
+        dayOffs = dayOffs.filter((dayOff) => {
             const isDateNotPassed = new Date().getTime() < new Date(dayOff.date).getTime();
 
             if (isDateNotPassed) {
                 return dayOff;
             }
         });
+
+        return dayOffs;
     }
 
-    async addEventBreakTimes(event) {
-        event.breakTimes = await this._eventsRepo.getBreakTimes();
+    async getEventBreakTimes() {
+        return await this._eventsRepo.getBreakTimes();
     }
 
-    async addEventSlots(event) {
+    async getEventSlots(event) {
         const currentDate = new Date();
 
         let eventEndDate = new Date(event.endDate);
@@ -153,6 +156,6 @@ export class EventsHelperService {
             }
         }
 
-        event.slots = slots;
+        return slots;
     }
 }

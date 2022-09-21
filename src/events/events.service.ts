@@ -24,19 +24,19 @@ export class EventsService {
 
         const eventDtos = events.map(async (event) => {
             // add the number of available, remaining days to every event
-            await this._eventsHelperService.addEventDays(event);
+            event.numberOfDays = await this._eventsHelperService.getEventDays(event);
 
             // add coming day-offs to every event
-            await this._eventsHelperService.addEventDaysOff(event);
+            event.dayOffs = await this._eventsHelperService.getEventDaysOff();
 
             // add the amount of minutes until the start of an event
-            await this._eventsHelperService.addEventMinutes(event);
+            event.timeLeft = await this._eventsHelperService.getEventMinutes(event);
 
             // add break-times to every event
-            await this._eventsHelperService.addEventBreakTimes(event);
+            event.breakTimes = await this._eventsHelperService.getEventBreakTimes();
 
             // add available slots to an events
-            await this._eventsHelperService.addEventSlots(event);
+            event.slots = await this._eventsHelperService.getEventSlots(event);
 
             return event;
         });
@@ -53,7 +53,7 @@ export class EventsService {
 
         // get all available slots and parse it to an array
         const promisedSlots = events.map(async (event) => {
-            await this._eventsHelperService.addEventSlots(event);
+            await this._eventsHelperService.getEventSlots(event);
             return event.slots;
         });
 
