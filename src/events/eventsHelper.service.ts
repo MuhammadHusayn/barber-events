@@ -1,31 +1,41 @@
+import { BreakTime } from './entities/breakTime.entity';
 import { EventsRepository } from './events.repository';
-import { DaysLib } from 'src/helpers/DaysLib';
+import { DayOff } from './entities/dayOff.entity';
 import { Injectable } from '@nestjs/common';
+import { EventDto } from './dtos/event.dto';
+import {
+    differenceInBusinessDays,
+    minutesToMilliseconds,
+    differenceInMinutes,
+    eachDayOfInterval,
+    addBusinessDays,
+    compareAsc,
+    isWeekend,
+    isPast,
+    format,
+} from 'date-fns';
 
 @Injectable()
 export class EventsHelperService {
     constructor(private readonly _eventsRepo: EventsRepository) {}
 
-    async getAvailableEventDays(event, dayOffs) {
+    async getAvailableEventDays(event: EventDto, dayOffs: DayOff[]) {
         const currentDate = new Date();
         const eventEndDate = new Date(event.endDate);
         let eventStartDate = new Date(event.startDate);
 
         // check events already started or not
         // if already started, set startDate to currentDate
-        if (eventStartDate.getTime() < currentDate.getTime()) {
+        if (compareAsc(eventStartDate, currentDate) === -1) {
             eventStartDate = currentDate;
         }
 
-        // get all available working days without Sundays
-        let availableEventDays = DaysLib.getWeekDays(eventStartDate, eventEndDate);
+        // get all available working days without Weekends
+        let availableEventDays = differenceInBusinessDays(eventEndDate, eventStartDate);
 
-        // check day-off is passed or on Sunday and decrement working days
+        // check day-off is passed or it is not on weekend and decrement working days
         dayOffs.forEach((dayOff) => {
-            const isNotSunday = new Date(dayOff.date).getDay();
-            const isDateNotPassed = new Date().getTime() < new Date(dayOff.date).getTime();
-
-            if (isNotSunday && isDateNotPassed) {
+            if (!isWeekend(new Date(dayOff.date)) && !isPast(new Date(dayOff.date))) {
                 availableEventDays -= 1;
             }
         });
@@ -33,51 +43,44 @@ export class EventsHelperService {
         return availableEventDays;
     }
 
-    async getEventMinutes(event) {
-        const HOUR = 1000 * 60;
-        const currentDateMinutes = new Date().getTime() / HOUR;
-        const startDateMinutes = new Date(event.startDate).getTime() / HOUR;
-
-        const timeLeft = (startDateMinutes - currentDateMinutes) | 0;
-        return timeLeft;
+    async getEventMinutes(event: EventDto) {
+        return differenceInMinutes(new Date(event.startDate), new Date());
     }
 
-    async getEventSlots(event, dayOffObjects, breakTimes) {
+    async getEventSlots(event: EventDto, dayOffObjects: DayOff[], breakTimes: BreakTime[]) {
         const currentDate = new Date();
-
-        let eventEndDate = new Date(event.endDate);
+        const eventEndDate = new Date(event.endDate);
         let eventStartDate = new Date(event.startDate);
 
         // check if event already started or not
         // if an event already started, set startDate to now in order to get future slots
-        if (eventStartDate.getTime() < currentDate.getTime()) {
+        if (compareAsc(eventStartDate, currentDate) === -1) {
             eventStartDate = currentDate;
         }
 
-        // the 7th day after the eventStartDate
-        const limitedDate = new Date(
-            new Date(eventStartDate).setDate(eventStartDate.getDate() + 7),
-        );
+        // specify the last available booking date after the start of an event (7 days in insturction)
+        let limitedDate = addBusinessDays(new Date(event.startDate), event.availableBookingDays);
 
-        // check if the last 7th date is less than eventEndDate or not
-        // if it is less, set eventEndDate to limitedDate
-        if (limitedDate < eventEndDate) {
-            eventEndDate = limitedDate;
+        // check if limitedDate is after than eventEndDate
+        // if it is after, set limitedDate to eventEndDate
+        if (compareAsc(limitedDate, eventEndDate) === 1) {
+            limitedDate = eventEndDate;
         }
 
-        // get all days in 7-day period range
-        const availableDays = DaysLib.getDaysInRange(eventStartDate, eventEndDate);
+        // get all formatted days into an array between eventStartDate and limitedDate
+        const availableDays = eachDayOfInterval({
+            start: eventStartDate,
+            end: limitedDate,
+        }).map((date) => format(date, 'yyyy-MM-dd'));
 
         // get all day-offs and parse their values to an array
-        const dayOffs = dayOffObjects.map((dayOff) => dayOff.date);
+        const dayOffs = dayOffObjects.map((dayOff) => format(new Date(dayOff.date), 'yyyy-MM-dd'));
 
         // creating slots
         const slots = [];
         for (const day of availableDays) {
-            const isSunday = !new Date(day).getDay();
-
-            // if one of the days in 7 is Sunday or day-off, exclude it
-            if (isSunday || dayOffs.includes(day)) {
+            // if one of the days in availableDays is weekend or day-off, exclude it
+            if (isWeekend(new Date(day)) || dayOffs.includes(day)) {
                 continue;
             }
 
@@ -88,9 +91,9 @@ export class EventsHelperService {
             // the while loop creates slots for per day, considering breaks and working hours
             let bTIndex = 0;
             while (slotStartTime.getTime() <= workEndTime.getTime()) {
-                const formattedDate = DaysLib.formatDate(slotStartTime);
-                const slotDurationInMilliSeconds = event.slotDuration * 60 * 1000;
-                const breakTimeInMilliSeconds = event.breakTimeAfterSlot * 60 * 1000;
+                const formattedDate = format(slotStartTime, 'yyyy-MM-dd HH:mm:ss');
+                const slotDurationInMilliSeconds = minutesToMilliseconds(event.slotDuration);
+                const breakTimeInMilliSeconds = minutesToMilliseconds(event.breakTimeAfterSlot);
 
                 const theStartOfBreakTimeInMilliseconds = new Date(
                     `${day} ${breakTimes[bTIndex]?.start}`,
@@ -118,8 +121,8 @@ export class EventsHelperService {
                     slotStartTime.getTime() + slotDurationInMilliSeconds + breakTimeInMilliSeconds,
                 );
 
-                // check slotStartTime is greater than coming break start time
-                // if it is greater, change slotStartTime to end of this break time
+                // check slotStartTime is after than coming break start time
+                // if it is after, change slotStartTime to end of this break time
                 if (
                     breakTimes[bTIndex] &&
                     slotStartTime.getTime() >= theStartOfBreakTimeInMilliseconds

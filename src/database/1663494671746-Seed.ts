@@ -133,16 +133,17 @@ export class Seed1663494671746 implements MigrationInterface {
                     endHour,
                     startDate,
                     endDate,
-                    createdAt
+                    createdAt,
+                    availableBookingDays
                 ) VALUES 
-                (1, 'Men Haircut', null, 10, 3, 5, '08:00:00', '20:00:00', '2022-09-22', '2022-10-14', '2022-09-18 13:00:00'),
-                (2, 'Women Haircut', null, 60, 3, 10, '08:00:00', '20:00:00', '2022-09-23', '2022-10-14', '2022-09-18 13:00:00')
+                (1, 'Men Haircut', null, 10, 3, 5, '08:00:00', '20:00:00', '2022-09-22', '2022-10-14', '2022-09-18 13:00:00', 7),
+                (2, 'Women Haircut', null, 60, 3, 10, '08:00:00', '20:00:00', '2022-09-23', '2022-10-14', '2022-09-18 13:00:00', 7)
             `);
 
             // seed data for day_off
             await queryRunner.query(`
                 INSERT INTO day_off (id, name, description, date, createdAt) VALUES 
-                (1, 'Bla-Bla Holiday', null, '2022-09-24', '2022-09-18 13:00:00'),
+                (1, 'Bla-Bla Holiday', null, '2022-10-06', '2022-09-18 13:00:00'),
                 (2, 'BirthDay Party', null, '2022-09-27', '2022-09-18 13:00:00')
             `);
 
