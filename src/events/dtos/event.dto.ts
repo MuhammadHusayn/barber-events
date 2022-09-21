@@ -1,62 +1,8 @@
-import { Expose, Exclude } from 'class-transformer';
+import { Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-
-class DayOff {
-    @ApiProperty()
-    id: number;
-
-    @ApiProperty()
-    name: string;
-
-    @ApiProperty()
-    date: string;
-
-    @ApiProperty()
-    createdAt: string;
-
-    @ApiProperty()
-    description: string;
-}
-
-class BreakTime {
-    @ApiProperty()
-    id: number;
-
-    @ApiProperty()
-    end: string;
-
-    @ApiProperty()
-    name: string;
-
-    @ApiProperty()
-    start: string;
-
-    @ApiProperty()
-    createdAt: string;
-
-    @ApiProperty()
-    description: string;
-}
-
-class Slot {
-    @ApiProperty({
-        description: 'The total size of a slot',
-    })
-    available: number;
-
-    @ApiProperty({
-        description: 'The number of free places available',
-    })
-    remains: number;
-
-    @ApiProperty({
-        description: 'DateTime when slot begins. This should be chosen for booking',
-    })
-    dateTime: string;
-
-    @Exclude()
-    eventId: number;
-}
+import { BreakTime } from './breakTime.dto';
+import { DayOff } from './dayOff.dto';
+import { Slot } from './slot.dto';
 
 export class EventDto {
     @ApiProperty({
