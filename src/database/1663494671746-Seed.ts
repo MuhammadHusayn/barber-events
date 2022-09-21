@@ -21,6 +21,7 @@ export class Seed1663494671746 implements MigrationInterface {
                     { name: 'slotDuration', type: 'integer' },
                     { name: 'maxUserCountPerSlot', type: 'integer' },
                     { name: 'breakTimeAfterSlot', type: 'integer' },
+                    { name: 'availableBookingDays', type: 'integer' },
                     { name: 'startHour', type: 'varchar' },
                     { name: 'endHour', type: 'varchar' },
                     { name: 'startDate', type: 'date' },
