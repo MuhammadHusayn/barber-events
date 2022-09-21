@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common';
 export class EventsHelperService {
     constructor(private readonly _eventsRepo: EventsRepository) {}
 
-    async getEventDays(event, dayOffs) {
+    async getAvailableEventDays(event, dayOffs) {
         const currentDate = new Date();
         const eventEndDate = new Date(event.endDate);
         let eventStartDate = new Date(event.startDate);
@@ -18,7 +18,7 @@ export class EventsHelperService {
         }
 
         // get all available working days without Sundays
-        let workingDays = DaysLib.getWeekDays(eventStartDate, eventEndDate);
+        let availableEventDays = DaysLib.getWeekDays(eventStartDate, eventEndDate);
 
         // check day-off is passed or on Sunday and decrement working days
         dayOffs.forEach((dayOff) => {
@@ -26,11 +26,11 @@ export class EventsHelperService {
             const isDateNotPassed = new Date().getTime() < new Date(dayOff.date).getTime();
 
             if (isNotSunday && isDateNotPassed) {
-                workingDays -= 1;
+                availableEventDays -= 1;
             }
         });
 
-        return workingDays;
+        return availableEventDays;
     }
 
     async getEventMinutes(event) {

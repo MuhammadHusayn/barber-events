@@ -31,8 +31,11 @@ export class EventsService {
             // add break-times to every event
             event.breakTimes = breakTimes;
 
-            // add the number of available, remaining days to every event
-            event.numberOfDays = await this._eventsHelperService.getEventDays(event, dayOffs);
+            // add all available days of every event
+            event.availableEventDays = await this._eventsHelperService.getAvailableEventDays(
+                event,
+                dayOffs,
+            );
 
             // add the amount of minutes until the start of an event
             event.timeLeft = await this._eventsHelperService.getEventMinutes(event);
