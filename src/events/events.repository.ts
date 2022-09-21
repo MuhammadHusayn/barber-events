@@ -1,3 +1,4 @@
+import { CreateBookingDto } from './dtos/create-booking.dto';
 import { BreakTime } from './entities/breakTime.entity';
 import { Booking } from './entities/booking.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -5,8 +6,6 @@ import { DayOff } from './entities/dayOff.entity';
 import { Event } from './entities/event.entity';
 import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
-
-import { CreateBookingDto } from './dtos/create-booking.dto';
 
 @Injectable()
 export class EventsRepository {

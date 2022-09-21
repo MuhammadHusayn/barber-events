@@ -1,9 +1,9 @@
 import { BreakTime } from './entities/breakTime.entity';
 import { EventsRepository } from './events.repository';
 import { DayOff } from './entities/dayOff.entity';
+import { Event } from './entities/event.entity';
 import { Injectable } from '@nestjs/common';
 import { Slot } from './dtos/slot.dto';
-import { Event } from './entities/event.entity';
 import {
     differenceInBusinessDays,
     minutesToMilliseconds,
