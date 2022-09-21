@@ -100,7 +100,7 @@ export class Seed1663494671746 implements MigrationInterface {
                     { name: 'firstName', type: 'varchar' },
                     { name: 'lastName', type: 'integer' },
                     { name: 'eventId', type: 'integer' },
-                    { name: 'selectedDateTime', type: 'timestamp' },
+                    { name: 'selectedDateTime', type: 'varchar' },
                 ],
             }),
         );

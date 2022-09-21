@@ -6,6 +6,7 @@ import { Booking } from './entities/booking.entity';
 import { EventDto } from './dtos/event.dto';
 import { Errors } from '../enums/errors';
 import { Cache } from 'src/helpers/Cache';
+import { Slot } from './dtos/slot.dto';
 
 @Injectable()
 export class EventsService {
@@ -24,30 +25,20 @@ export class EventsService {
         const dayOffs = await this._eventsRepo.getDayOffs();
         const breakTimes = await this._eventsRepo.getBreakTimes();
 
-        const eventDtos = events.map(async (event) => {
-            // add day-offs to every event
-            event.dayOffs = dayOffs;
-
-            // add break-times to every event
-            event.breakTimes = breakTimes;
-
-            // add all available days of every event
-            event.availableEventDays = await this._eventsHelperService.getAvailableEventDays(
-                event,
-                dayOffs,
-            );
-
-            // add the amount of minutes until the start of an event
-            event.timeLeft = await this._eventsHelperService.getEventMinutes(event);
-
-            // add available slots to an events
-            event.slots = await this._eventsHelperService.getEventSlots(event, dayOffs, breakTimes);
-
-            return event;
+        const eventDtos = events.map(async (event): Promise<EventDto> => {
+            return Object.assign(event, {
+                dayOffs: dayOffs,
+                breakTimes: breakTimes,
+                timeLeft: this._eventsHelperService.getEventMinutes(event),
+                slots: await this._eventsHelperService.getEventSlots(event, dayOffs, breakTimes),
+                availableEventDays: await this._eventsHelperService.getAvailableEventDays(
+                    event,
+                    dayOffs,
+                ),
+            });
         });
 
         const data = await Promise.all(eventDtos);
-
         this._cache.set('events', data);
 
         return data;
@@ -59,9 +50,8 @@ export class EventsService {
         const breakTimes = await this._eventsRepo.getBreakTimes();
 
         // get all available slots and parse it to an array
-        const promisedSlots = events.map(async (event) => {
-            await this._eventsHelperService.getEventSlots(event, dayOffs, breakTimes);
-            return event.slots;
+        const promisedSlots = events.map((event): Promise<Slot[]> => {
+            return this._eventsHelperService.getEventSlots(event, dayOffs, breakTimes);
         });
 
         const innerSlots = await Promise.all(promisedSlots);

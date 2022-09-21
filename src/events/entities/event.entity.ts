@@ -15,22 +15,25 @@ export class Event {
     slotDuration: number;
 
     @Column()
-    maxSlotUsers: number;
+    maxUserCountPerSlot: number;
 
     @Column()
     breakTimeAfterSlot: number;
 
     @Column()
-    hourStart: string;
+    startHour: string;
 
     @Column()
-    hourEnd: string;
+    endHour: string;
+
+    @Column()
+    availableBookingDays: number;
 
     @Column({ type: 'date' })
-    dateStart: string;
+    startDate: string;
 
     @Column({ type: 'date' })
-    dateEnd: string;
+    endDate: string;
 
     @Column({ type: 'datetime' })
     createdAt: string;

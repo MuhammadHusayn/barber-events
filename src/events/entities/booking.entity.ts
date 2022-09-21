@@ -14,7 +14,7 @@ export class Booking {
     @Column()
     lastName: string;
 
-    @Column({ type: 'datetime' })
+    @Column({ type: 'varchar' })
     selectedDateTime: string;
 
     @Column({ type: 'integer' })

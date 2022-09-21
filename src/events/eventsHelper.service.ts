@@ -2,7 +2,8 @@ import { BreakTime } from './entities/breakTime.entity';
 import { EventsRepository } from './events.repository';
 import { DayOff } from './entities/dayOff.entity';
 import { Injectable } from '@nestjs/common';
-import { EventDto } from './dtos/event.dto';
+import { Slot } from './dtos/slot.dto';
+import { Event } from './entities/event.entity';
 import {
     differenceInBusinessDays,
     minutesToMilliseconds,
@@ -19,7 +20,7 @@ import {
 export class EventsHelperService {
     constructor(private readonly _eventsRepo: EventsRepository) {}
 
-    async getAvailableEventDays(event: EventDto, dayOffs: DayOff[]) {
+    async getAvailableEventDays(event: Event, dayOffs: DayOff[]): Promise<number> {
         const currentDate = new Date();
         const eventEndDate = new Date(event.endDate);
         let eventStartDate = new Date(event.startDate);
@@ -43,11 +44,15 @@ export class EventsHelperService {
         return availableEventDays;
     }
 
-    async getEventMinutes(event: EventDto) {
+    getEventMinutes(event: Event): number {
         return differenceInMinutes(new Date(event.startDate), new Date());
     }
 
-    async getEventSlots(event: EventDto, dayOffObjects: DayOff[], breakTimes: BreakTime[]) {
+    async getEventSlots(
+        event: Event,
+        dayOffObjects: DayOff[],
+        breakTimes: BreakTime[],
+    ): Promise<Slot[]> {
         const currentDate = new Date();
         const eventEndDate = new Date(event.endDate);
         let eventStartDate = new Date(event.startDate);
@@ -103,7 +108,7 @@ export class EventsHelperService {
                 ).getTime();
 
                 // get the count of users that booked a slot
-                const [{ count }] = await this._eventsRepo.getSlotBookingsCount(
+                const { length: count } = await this._eventsRepo.getSlotBookingsCount(
                     event.id,
                     formattedDate,
                 );
