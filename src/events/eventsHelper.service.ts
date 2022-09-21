@@ -131,7 +131,9 @@ export class EventsHelperService {
                     bTIndex++;
                 }
 
-                slots.push(slot);
+                if (!(slotStartTime.getTime() >= workEndTime.getTime())) {
+                    slots.push(slot);
+                }
             }
         }
 
