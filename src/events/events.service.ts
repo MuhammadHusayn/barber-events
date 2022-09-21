@@ -21,22 +21,24 @@ export class EventsService {
         }
 
         const events = await this._eventsRepo.getEvents();
+        const dayOffs = await this._eventsRepo.getDayOffs();
+        const breakTimes = await this._eventsRepo.getBreakTimes();
 
         const eventDtos = events.map(async (event) => {
-            // add the number of available, remaining days to every event
-            event.numberOfDays = await this._eventsHelperService.getEventDays(event);
+            // add day-offs to every event
+            event.dayOffs = dayOffs;
 
-            // add coming day-offs to every event
-            event.dayOffs = await this._eventsHelperService.getEventDaysOff();
+            // add break-times to every event
+            event.breakTimes = breakTimes;
+
+            // add the number of available, remaining days to every event
+            event.numberOfDays = await this._eventsHelperService.getEventDays(event, dayOffs);
 
             // add the amount of minutes until the start of an event
             event.timeLeft = await this._eventsHelperService.getEventMinutes(event);
 
-            // add break-times to every event
-            event.breakTimes = await this._eventsHelperService.getEventBreakTimes();
-
             // add available slots to an events
-            event.slots = await this._eventsHelperService.getEventSlots(event);
+            event.slots = await this._eventsHelperService.getEventSlots(event, dayOffs, breakTimes);
 
             return event;
         });
@@ -50,10 +52,12 @@ export class EventsService {
 
     async book(body: CreateBookingDto): Promise<Booking> {
         const events = await this._eventsRepo.getEvents();
+        const dayOffs = await this._eventsRepo.getDayOffs();
+        const breakTimes = await this._eventsRepo.getBreakTimes();
 
         // get all available slots and parse it to an array
         const promisedSlots = events.map(async (event) => {
-            await this._eventsHelperService.getEventSlots(event);
+            await this._eventsHelperService.getEventSlots(event, dayOffs, breakTimes);
             return event.slots;
         });
 

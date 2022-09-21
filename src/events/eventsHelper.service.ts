@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common';
 export class EventsHelperService {
     constructor(private readonly _eventsRepo: EventsRepository) {}
 
-    async getEventDays(event) {
+    async getEventDays(event, dayOffs) {
         const currentDate = new Date();
         const eventEndDate = new Date(event.endDate);
         let eventStartDate = new Date(event.startDate);
@@ -19,9 +19,6 @@ export class EventsHelperService {
 
         // get all available working days without Sundays
         let workingDays = DaysLib.getWeekDays(eventStartDate, eventEndDate);
-
-        // get all day Offs
-        const dayOffs = await this._eventsRepo.getDayOffs();
 
         // check day-off is passed or on Sunday and decrement working days
         dayOffs.forEach((dayOff) => {
@@ -45,24 +42,7 @@ export class EventsHelperService {
         return timeLeft;
     }
 
-    async getEventDaysOff() {
-        let dayOffs = await this._eventsRepo.getDayOffs();
-        dayOffs = dayOffs.filter((dayOff) => {
-            const isDateNotPassed = new Date().getTime() < new Date(dayOff.date).getTime();
-
-            if (isDateNotPassed) {
-                return dayOff;
-            }
-        });
-
-        return dayOffs;
-    }
-
-    async getEventBreakTimes() {
-        return await this._eventsRepo.getBreakTimes();
-    }
-
-    async getEventSlots(event) {
+    async getEventSlots(event, dayOffObjects, breakTimes) {
         const currentDate = new Date();
 
         let eventEndDate = new Date(event.endDate);
@@ -89,7 +69,6 @@ export class EventsHelperService {
         const availableDays = DaysLib.getDaysInRange(eventStartDate, eventEndDate);
 
         // get all day-offs and parse their values to an array
-        const dayOffObjects = await this._eventsRepo.getDayOffs();
         const dayOffs = dayOffObjects.map((dayOff) => dayOff.date);
 
         // creating slots
@@ -105,9 +84,6 @@ export class EventsHelperService {
             // casual start and end of working times of a day
             const workEndTime = new Date(day + ' ' + event.endHour);
             const slotStartTime = new Date(day + ' ' + event.startHour);
-
-            // get break times of a day
-            const breakTimes = await this._eventsRepo.getBreakTimes();
 
             // the while loop creates slots for per day, considering breaks and working hours
             let bTIndex = 0;
