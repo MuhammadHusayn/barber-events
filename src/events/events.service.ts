@@ -5,7 +5,7 @@ import { EventsRepository } from './events.repository';
 import { Booking } from './entities/booking.entity';
 import { EventDto } from './dtos/event.dto';
 import { Errors } from '../enums/errors';
-import { Cache } from 'src/helpers/Cache';
+import { Cache } from '../helpers/Cache';
 import { Slot } from './dtos/slot.dto';
 
 @Injectable()

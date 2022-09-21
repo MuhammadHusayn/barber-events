@@ -6,10 +6,10 @@ import { Injectable } from '@nestjs/common';
 import { Slot } from './dtos/slot.dto';
 import {
     differenceInBusinessDays,
-    minutesToMilliseconds,
     differenceInMinutes,
     eachDayOfInterval,
     addBusinessDays,
+    addMinutes,
     compareAsc,
     isWeekend,
     isPast,
@@ -57,7 +57,6 @@ export class EventsHelperService {
         const eventEndDate = new Date(event.endDate);
         let eventStartDate = new Date(event.startDate);
 
-        // check if event already started or not
         // if an event already started, set startDate to now in order to get future slots
         if (compareAsc(eventStartDate, currentDate) === -1) {
             eventStartDate = currentDate;
@@ -66,8 +65,7 @@ export class EventsHelperService {
         // specify the last available booking date after the start of an event (7 days in insturction)
         let limitedDate = addBusinessDays(new Date(event.startDate), event.availableBookingDays);
 
-        // check if limitedDate is after than eventEndDate
-        // if it is after, set limitedDate to eventEndDate
+        // change limitedDate to eventEndDate, is it is after eventEndDate
         if (compareAsc(limitedDate, eventEndDate) === 1) {
             limitedDate = eventEndDate;
         }
@@ -84,28 +82,20 @@ export class EventsHelperService {
         // creating slots
         const slots = [];
         for (const day of availableDays) {
-            // if one of the days in availableDays is weekend or day-off, exclude it
             if (isWeekend(new Date(day)) || dayOffs.includes(day)) {
                 continue;
             }
 
             // casual start and end of working times of a day
             const workEndTime = new Date(day + ' ' + event.endHour);
-            const slotStartTime = new Date(day + ' ' + event.startHour);
+            let slotStartTime = new Date(day + ' ' + event.startHour);
 
             // the while loop creates slots for per day, considering breaks and working hours
             let bTIndex = 0;
             while (slotStartTime.getTime() <= workEndTime.getTime()) {
                 const formattedDate = format(slotStartTime, 'yyyy-MM-dd HH:mm:ss');
-                const slotDurationInMilliSeconds = minutesToMilliseconds(event.slotDuration);
-                const breakTimeInMilliSeconds = minutesToMilliseconds(event.breakTimeAfterSlot);
-
-                const theStartOfBreakTimeInMilliseconds = new Date(
-                    `${day} ${breakTimes[bTIndex]?.start}`,
-                ).getTime();
-                const theEndOfBreakTimeInMilliseconds = new Date(
-                    `${day} ${breakTimes[bTIndex]?.end}`,
-                ).getTime();
+                const breakTimeStart = new Date(`${day} ${breakTimes[bTIndex]?.start}`);
+                const breakTimeEnd = new Date(`${day} ${breakTimes[bTIndex]?.end}`);
 
                 // get the count of users that booked a slot
                 const { length: count } = await this._eventsRepo.getSlotBookingsCount(
@@ -122,17 +112,14 @@ export class EventsHelperService {
                 };
 
                 // change the starting time of the next slot
-                slotStartTime.setTime(
-                    slotStartTime.getTime() + slotDurationInMilliSeconds + breakTimeInMilliSeconds,
+                slotStartTime = addMinutes(
+                    slotStartTime,
+                    event.slotDuration + event.breakTimeAfterSlot,
                 );
 
-                // check slotStartTime is after than coming break start time
-                // if it is after, change slotStartTime to end of this break time
-                if (
-                    breakTimes[bTIndex] &&
-                    slotStartTime.getTime() >= theStartOfBreakTimeInMilliseconds
-                ) {
-                    slotStartTime.setTime(theEndOfBreakTimeInMilliseconds);
+                // change slotStartTime to breakTimeEnd, if slotStartTime is after breakTimeStart
+                if (breakTimes[bTIndex] && compareAsc(slotStartTime, breakTimeStart) === 1) {
+                    slotStartTime.setTime(breakTimeEnd.getTime());
                     bTIndex++;
                 }
 
