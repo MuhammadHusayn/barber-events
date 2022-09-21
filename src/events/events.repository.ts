@@ -27,6 +27,7 @@ export class EventsRepository {
                 slotDuration,
                 maxUserCountPerSlot,
                 breakTimeAfterSlot,
+                availableBookingDays,
                 startHour,
                 endHour,
                 startDate,

@@ -126,11 +126,16 @@ export class EventDto {
     timeLeft: number;
 
     @ApiProperty({
-        description:
-            'The number of days that are available for booking, excluding Sundays and DayOffs',
+        description: 'The total number of days that event has, excluding Weekend and DayOffs',
     })
     @Expose()
     availableEventDays: number;
+
+    @ApiProperty({
+        description: 'The total number of days that a user can book for an event',
+    })
+    @Expose()
+    availableBookingDays: number;
 
     @ApiProperty({
         type: [DayOff],
