@@ -136,29 +136,30 @@ export class Seed1663494671746 implements MigrationInterface {
                     createdAt,
                     availableBookingDays
                 ) VALUES 
-                (1, 'Men Haircut', null, 10, 3, 5, '08:00:00', '20:00:00', '2022-09-22', '2022-10-14', '2022-09-18 13:00:00', 7),
-                (2, 'Women Haircut', null, 60, 3, 10, '08:00:00', '20:00:00', '2022-09-23', '2022-10-14', '2022-09-18 13:00:00', 7)
+                (1, 'Men Haircut', 'Some description', 10, 3, 5, '08:00:00', '20:00:00', '2022-09-23', '2022-10-14', '2022-09-18 13:00:00', 7),
+                (2, 'Women Haircut', 'Some description', 60, 3, 10, '08:00:00', '20:00:00', '2022-09-23', '2022-10-14', '2022-09-18 13:00:00', 7)
             `);
 
             // seed data for day_off
             await queryRunner.query(`
                 INSERT INTO day_off (id, name, description, date, createdAt) VALUES 
-                (1, 'Bla-Bla Holiday', null, '2022-10-06', '2022-09-18 13:00:00'),
-                (2, 'BirthDay Party', null, '2022-09-27', '2022-09-18 13:00:00')
+                (1, 'Bla-Bla Holiday', 'Some description', '2022-10-06', '2022-09-18 13:00:00'),
+                (2, 'BirthDay Party', 'Some description', '2022-09-27', '2022-09-18 13:00:00')
             `);
 
             // seed data for break_time
             await queryRunner.query(`
                 INSERT INTO break_time (id, name, description, start, end, createdAt) VALUES 
-                (1, 'Launch Break', null, '12:00:00', '13:00:00', '2022-09-18 13:00:00'),
-                (2, 'Cleanup Break', null, '15:00:00', '16:00:00', '2022-09-18 13:00:00')
+                (1, 'Launch Break', 'Some description', '12:00:00', '13:00:00', '2022-09-18 13:00:00'),
+                (2, 'Cleanup Break', 'Some description', '15:00:00', '16:00:00', '2022-09-18 13:00:00')
             `);
 
             // seed data for break_time
             await queryRunner.query(`
                 INSERT INTO booking (id, eventId, email, firstName, lastName, selectedDateTime) VALUES 
-                (1, 1, 'fake@gmail.com', 'Tobbi', 'Bown', '2022-09-22 08:00:00'),
-                (2, 2, 'fake@gmail.com', 'Jane', 'Bown', '2022-09-23 08:00:00')
+                (1, 1, 'fake@gmail.com', 'Tobbi', 'Bown', '2022-09-23 08:00:00'),
+                (2, 1, 'fake@gmail.com', 'Jane', 'Bown', '2022-09-23 08:00:00'),
+                (3, 1, 'fake@gmail.com', 'John', 'Dahl', '2022-09-23 08:00:00')
             `);
         } catch (error) {
             await queryRunner.rollbackTransaction();

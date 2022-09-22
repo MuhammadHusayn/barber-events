@@ -9,7 +9,7 @@ import { BreakTime } from './entities/breakTime.entity';
 import { Booking } from './entities/booking.entity';
 import { DayOff } from './entities/dayOff.entity';
 import { Event } from './entities/event.entity';
-import { Cache } from 'src/helpers/Cache';
+import { Cache } from '../helpers/Cache';
 
 @Module({
     imports: [TypeOrmModule.forFeature([BreakTime, Booking, DayOff, Event])],
